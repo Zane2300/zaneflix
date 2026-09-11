@@ -1,0 +1,18 @@
+# Runtime de desarrollo portátil — Claude Code + Codex CLI.
+# Igual en Windows, portátil Linux y el servidor. Ver docs/DOCKER.md.
+# No confundir con docker-compose.media.yml (el stack multimedia en sí).
+
+services:
+  dev:
+    build: .
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - claude-config:/root/.claude
+      - codex-config:/root/.codex
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude-config:
+  codex-config:

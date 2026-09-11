@@ -1,0 +1,129 @@
+# Stack de servidor multimedia personal — Jellyfin + gestión de biblioteca.
+# Ningún indexador viene configurado: se añade a mano en Prowlarr, y debe
+# ser legal (ver .claude/rules/03-content-sourcing.md).
+#
+# Variables de entorno esperadas en un .env junto a este fichero:
+#   PUID, PGID       — usuario/grupo del host para permisos de ficheros
+#   TZ                — zona horaria, ej. Europe/Madrid
+#   MEDIA_ROOT        — carpeta del host donde vive tu biblioteca ya existente
+#   DOWNLOADS_ROOT     — carpeta del host para descargas en curso/completas
+#   CONFIG_ROOT        — carpeta del host donde cada servicio guarda su config
+
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/jellyfin:/config
+      - ${MEDIA_ROOT}:/data/media
+    ports:
+      - "8096:8096"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/radarr:/config
+      - ${MEDIA_ROOT}:/data/media
+      - ${DOWNLOADS_ROOT}:/data/downloads
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/sonarr:/config
+      - ${MEDIA_ROOT}:/data/media
+      - ${DOWNLOADS_ROOT}:/data/downloads
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+    # Sin indexadores preconfigurados. Se añaden a mano desde la UI,
+    # solo fuentes legales — ver .claude/rules/03-content-sourcing.md.
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/bazarr:/config
+      - ${MEDIA_ROOT}:/data/media
+    ports:
+      - "6767:6767"
+    restart: unless-stopped
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/seerr:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+
+  # --- Descargas ---
+  # Por defecto qBittorrent sale directo por la red del host/Docker.
+  # Si quieres enrutarlo por VPN, descomenta el bloque gluetun de abajo,
+  # quita el "ports" de qbittorrent y añade network_mode: "service:gluetun".
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${CONFIG_ROOT}/qbittorrent:/config
+      - ${DOWNLOADS_ROOT}:/data/downloads
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  # gluetun:
+  #   image: qmcgaw/gluetun:latest
+  #   container_name: gluetun
+  #   cap_add:
+  #     - NET_ADMIN
+  #   environment:
+  #     - VPN_SERVICE_PROVIDER=  # tu proveedor
+  #     - VPN_TYPE=wireguard
+  #     - WIREGUARD_PRIVATE_KEY=  # desde variable de entorno/.env, nunca hardcodeado
+  #   ports:
+  #     - "8080:8080"  # expón aquí el puerto de qbittorrent si usas este modo
+  #   restart: unless-stopped

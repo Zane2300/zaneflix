@@ -1,0 +1,16 @@
+# Secretos y config local — nunca se sube.
+.env
+.env.media
+*.env.local
+
+# Ruido habitual del SO/editor.
+.DS_Store
+Thumbs.db
+*.log
+
+# Node, por si algún host instala algo local aparte del contenedor.
+node_modules/
+
+# Datos y config de los contenedores del stack multimedia cuando corre con
+# las rutas locales por defecto de .env.media.example.
+/data/

@@ -1,0 +1,13 @@
+# Config a nivel de proyecto para el plugin/CLI de Codex.
+# Se aplica solo cuando este directorio está marcado como "trusted" por Codex.
+# Ver: https://developers.openai.com/codex/config-reference
+
+# Esfuerzo de razonamiento por defecto para /codex:review y
+# /codex:adversarial-review lanzados desde este repo. "medium" es un punto
+# de partida razonable para no pagar "high" en cada auditoría — súbelo tú
+# puntualmente en tareas críticas con --effort high si hace falta.
+model_reasoning_effort = "medium"
+
+# No fijamos "model" aquí a propósito: si lo pones fijo, /codex:rescue
+# ignora --model salvo que lo pases explícito. Déjalo que Codex elija su
+# default salvo que quieras forzar uno para todo el repo.
